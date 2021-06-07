@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+
+<!-- This is an XML comment -->
+
+<!--
+Tutorial for specifying simulation parameters for the tumor simulation software
+version 1.2
+
+To execute, run the following in a command line interface:
+tumorsim tutorial.xml
+ -->
+
+<!--
+We begin with the starting element for the set of simulation parameters
+-->
+<tumor-simulation-parameters>
+
+<!-- The name of the dataset, will be used as prefix in the output files -->
+<dataset-name>SimTumor</dataset-name>
+
+<!--
+Input directory, the location of the uncompressed directory, obtained
+from TumorSimInput.zip
+For Windows, use something such as C:/scratch/TumorSim/TumorSimInput
+-->
+<input-directory>/home/mjia/Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData/TumorSimInput2</input-directory>
+
+<!--
+Where to store all output files
+-->
+<output-directory>/home/mjia/Researches/Volume_Segmentation/NITRC-multi-file-downloads/OutputData/TumorSimInput2_out</output-directory>
+
+<!--
+Location of the binary image containing the manually drawn tumor seed,
+must be in the same space as the anatomical labels in the input directory
+-->
+<deformation-seed>/home/mjia/Researches/Volume_Segmentation/NITRC-multi-file-downloads/TumorSimInput1/seed_mid.nrrd</deformation-seed>
+
+<!-- Mechanical properties of brain tissue -->
+<brain-young-modulus>694.0</brain-young-modulus>
+<brain-poisson-ratio>0.4</brain-poisson-ratio>
+
+<!--
+Parameters for mass effect simulation:
+the number of iterations,
+the initial pressure (in kPa),
+and the parameter kappa for the von Mises-Fisher random distribution
+  (larger kappa means smaller std dev)
+
+We recommend initial pressure values around 2-5 kPa for stability
+-->
+<deformation-iterations>10</deformation-iterations>
+<deformation-initial-pressure>2.5</deformation-initial-pressure>
+<deformation-kappa>80.0</deformation-kappa>
+<deformation-damping>0.95</deformation-damping>
+
+<!--
+Parameters for the infiltration:
+the number of iterations,
+the time step (values <= 2.0 is recommended),
+and the early time that defines the starting point for edema
+  (smaller means edema will form most of the infiltration)
+-->
+<infiltration-iterations>60</infiltration-iterations>
+<infiltration-time-step>0.5</infiltration-time-step>
+<infiltration-early-time>2.0</infiltration-early-time>
+
+<!-- Diffusion properties for infiltration in white and gray matter -->
+<white-matter-tensor-multiplier>10.0</white-matter-tensor-multiplier>
+<gray-matter-tensor-multiplier>1.0</gray-matter-tensor-multiplier>
+
+<!-- Local growth factor in the reaction-diffusion model -->
+ <infiltration-reaction-coefficient>0.1</infiltration-reaction-coefficient>
+
+<!--
+Parameters for the application of infiltration body forces:
+the number of iterations,
+and the coefficient lambda where each force is -del(infiltration)*lambda
+
+lambda values between 1-5 generates moderate deformation
+-->
+<infiltration-body-force-iterations>2</infiltration-body-force-iterations>
+<infiltration-body-force-coefficient>5.0</infiltration-body-force-coefficient>
+<infiltration-body-force-damping>0.9</infiltration-body-force-damping>
+
+
+<!-- Contrast enhancement type, can be: none, ring, or uniform -->
+<contrast-enhancement-type>uniform</contrast-enhancement-type>
+
+<!-- Image noise and strength of MR bias field -->
+<gad-noise-stddev>8.0</gad-noise-stddev>
+<gad-max-bias-degree>4</gad-max-bias-degree>
+
+<t1-noise-stddev>5.0</t1-noise-stddev>
+<t1-max-bias-degree>4</t1-max-bias-degree>
+
+<t2-noise-stddev>20.0</t2-noise-stddev>
+<t2-max-bias-degree>4</t2-max-bias-degree>
+
+<flair-noise-stddev>50.0</flair-noise-stddev>
+<flair-max-bias-degree>4</flair-max-bias-degree>
+
+<!--
+Option to disable the drawing of background anatomical structures,
+such as skull, fat, and skin
+-->
+<disable-background>1</disable-background>
+
+<!-- Number of threads to use for running the simulations -->
+<number-of-threads>8</number-of-threads>
+
+<!-- Advanced simulation parameters -->
+<deformation-solver-iterations>8</deformation-solver-iterations>
+<infiltration-solver-iterations>8</infiltration-solver-iterations>
+
+<!-- end of the simulation parameters element -->
+</tumor-simulation-parameters>

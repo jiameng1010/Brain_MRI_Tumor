@@ -1,0 +1,26 @@
+recon-all -subjid OASIS-TRT-20-3 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-3/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-4 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-4/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-5 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-5/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-6 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-6/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-7 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-7/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-8 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-8/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-9 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-9/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-10 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-10/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-11 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-11/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-12 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-12/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-13 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-13/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-14 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-14/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-15 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-15/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-16 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-16/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-17 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-17/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-18 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-18/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-19 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-19/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid OASIS-TRT-20-20 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/OASIS-TRT-20_volumes/OASIS-TRT-20-20/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid Twins-2-1 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/Extra-18_volumes/Twins-2-1/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid Twins-2-2 -i /home/mjia/Researches/Volume_Segmentation/mindboggle/mindboggle_manually_labeled_individual_brains/Extra-18_volumes/Twins-2-2/t1weighted_brain.MNI152.nii.gz -autorecon1 -gcareg
+recon-all -subjid TumorSim_1 -i /Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData/TumorSimInput1/t1.mha -autorecon1 -gcareg
+recon-all -subjid TumorSim_2 -i /Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData/TumorSimInput2/t1.mha -autorecon1 -gcareg
+recon-all -subjid TumorSim_3 -i /Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData/TumorSimInput3/t1.mha -autorecon1 -gcareg
+recon-all -subjid TumorSim_4 -i /Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData/TumorSimInput4/t1.mha -autorecon1 -gcareg
+recon-all -subjid TumorSim_5 -i /Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData/TumorSimInput5/t1.mha -autorecon1 -gcareg
+
