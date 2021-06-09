@@ -15,3 +15,16 @@ conda env create -f Working_Environmrnt/volume_segmentation_environment.yml
 After the environment is created, activate it by `conda activate volume_segmentation`.
 
 **2 - Pymesh**
+Pymesh is a powerful python tool for processing mesh data. To make it working properly, one have to compile it and its dependencies in local. The download like and install instruction could be found here:
+https://pymesh.readthedocs.io/en/latest/installation.html
+
+**3 - FreeSurfer**
+FreeSufer is an essential software tool for processing medical Images. You can find its download and install instruction here:
+https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall
+
+**4 - TumorSim**
+
+## Datasets
+**1 - BraST**
+**2 - Mindboggle**
+**3 - TumorSim Input data**
