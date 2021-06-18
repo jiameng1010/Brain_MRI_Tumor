@@ -4,11 +4,10 @@ from medpy.io import load, save
 import numpy as np
 import nibabel as nib
 from util_package import util, plot, constants
-
-TumorSim_executable = '/home/mjia/Researches/Volume_Segmentation/NITRC-multi-file-downloads/tumorsim_1.2.2_static_linux64'
+from Working_Environment.environment_variables import *
 
 class Training_Data_Generator():
-    def __init__(self, BraTS_data, Mindboggle_data, BrainSim, output_dir, source=None):
+    def __init__(self, BraTS_data, Mindboggle_data, BrainSim, output_dir, source):
         if BrainSim == None:
             if source != None:
                 self.output_dir = output_dir
@@ -24,7 +23,6 @@ class Training_Data_Generator():
 
             if not os.path.isdir(self.output_dir):
                 subprocess.run(['mkdir', self.output_dir])
-            if source != None:
                 textfile = open(self.output_dir + '/Source_info', "w")
                 textfile.write('This is synthesised from:\n')
                 textfile.write('TumorSim_inputdata ' + str(source[0])+'\n')
@@ -41,11 +39,8 @@ class Training_Data_Generator():
         from mindboggle.Mindboggle import Mindboggle
         from mindboggle.Subject import Subject
         from Sim_Data.Sim_Data import Sim_Data
-        BraTS_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/TumorMRI/MICCAI_BraTS2020_TrainingData"
-        Mindboggle_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/mindboggle"
         mb_data = Mindboggle(Mindboggle_dataset_dir)
         subject_list = mb_data.get_subject_list()
-        BrainSim_inputdata_dir = "/home/mjia/Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData"
         self.BrainSim = Sim_Data(BrainSim_inputdata_dir, source[0])
         self.Mindboggle_data = Subject(mb_data, subject_list[source[1]])
         self.BraTS_data = BraTS_Data(BraTS_dataset_dir, source[2])
@@ -64,7 +59,7 @@ class Training_Data_Generator():
         voxels = np.concatenate([np.expand_dims(index[0], axis=1),
                                  np.expand_dims(index[1], axis=1),
                                  np.expand_dims(index[2], axis=1)], axis=1)
-        transformation = np.linalg.inv(constants.BraTS_Affine).dot(constants.BrainSim_Affine)
+        transformation = np.linalg.inv(self.BraTS_data.get_affine()).dot(self.BrainSim.get_affine())
         transformed_voxels = util.affine(transformation, voxels)
         voxels_moved = transformed_voxels.astype(int)
         voxels_moved = np.concatenate([np.expand_dims(np.clip(voxels_moved[:, 0], 0.0, shape[0]), axis=1),
@@ -78,7 +73,7 @@ class Training_Data_Generator():
         seed_out[index] = value
         seed_out = 1 * (seed_out > 0.5)
         seed_out = 1 * scipy.ndimage.morphology.binary_closing(seed_out)
-        seed_out = 1 * scipy.ndimage.morphology.binary_opening(seed_out)
+        seed_out = 1 * scipy.ndimage.binary_erosion(seed_out)
         save(seed_out, self.output_dir+'/Seed.nrrd', hdr=header)
 
     def run_BrainSim(self):
@@ -103,6 +98,7 @@ class Training_Data_Generator():
         tumor_labels, _ = load(self.output_dir + '/SimTumor_warped_labels2.mha')
         displacement_field = displacement_field1 + displacement_field2
         transformation = np.linalg.inv(constants.BrainSim_Affine).dot(constants.Mindboggle_Affine_MNI152)
+        transformation = np.linalg.inv(self.BrainSim.get_affine()).dot(self.Mindboggle_data.get_affine())
         transformed_volume, label_manual_aseg, label_manual = util.interpolate_with_displacement(self.Mindboggle_data.get_volume_data(4).get_fdata(),
                                                                 self.Mindboggle_data.get_volume_data(0).get_fdata(),
                                                                 self.Mindboggle_data.get_volume_data(2).get_fdata(),
@@ -114,12 +110,23 @@ class Training_Data_Generator():
                  self.output_dir + '/original_labels_manual_aseg.nii.gz')
         nib.save(self.Mindboggle_data.get_volume_data(2),
                  self.output_dir + '/original_label_manual.nii.gz')
-        nib.save(nib.Nifti1Image(transformed_volume, constants.Mindboggle_Affine_MNI152_org),
+        nib.save(nib.Nifti1Image(transformed_volume, self.Mindboggle_data.affine),
                  self.output_dir + '/transformed_t1.nii.gz')
-        nib.save(nib.Nifti1Image(label_manual_aseg, constants.Mindboggle_Affine_MNI152_org),
+        nib.save(nib.Nifti1Image(label_manual_aseg, self.Mindboggle_data.affine),
                  self.output_dir + '/transformed_labels_manual_aseg.nii.gz')
-        nib.save(nib.Nifti1Image(label_manual, constants.Mindboggle_Affine_MNI152_org),
+        nib.save(nib.Nifti1Image(label_manual, self.Mindboggle_data.affine),
                  self.output_dir + '/transformed_label_manual.nii.gz')
+
+        SimTumor_t1, _ = load(self.output_dir + '/SimTumor_T1.mha')
+        transformed_SimTumor = util.interpolate_without_displacement(SimTumor_t1, transformation, self.Mindboggle_data.get_volume_data(4).shape)
+        transformed_RealTumor = util.interpolate_without_displacement(self.BraTS_data.produce_data(0),
+                                                                     np.linalg.inv(self.BraTS_data.get_affine()).dot(self.Mindboggle_data.get_affine()),
+                                                                     self.Mindboggle_data.get_volume_data(4).shape)
+        nib.save(nib.Nifti1Image(transformed_RealTumor, self.Mindboggle_data.affine),
+                 self.output_dir + '/transformed_RealTumor.nii.gz')
+        nib.save(nib.Nifti1Image(transformed_SimTumor, self.Mindboggle_data.affine),
+                 self.output_dir + '/transformed_SimTumor.nii.gz')
+
 
     def interpolate(self):
         import scipy

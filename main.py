@@ -6,18 +6,12 @@ from Training_Data_Generator.Training_Data_Generator import Training_Data_Genera
 from util_package import util, plot, constants
 from mayavi import mlab
 import random
+from Working_Environment.environment_variables import *
 
-BraTS_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/TumorMRI/MICCAI_BraTS2020_TrainingData"
-
-Mindboggle_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/mindboggle"
 mb_data = Mindboggle(Mindboggle_dataset_dir)
 subject_list = mb_data.get_subject_list()
 
-BrainSim_inputdata_dir = "/home/mjia/Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData"
-
-training_data_output_dir = '/home/mjia/Researches/Volume_Segmentation/TumorMRI/my_training_data'
-
-for i in range(500, 505):
+for i in range(250, 260):
     BrainSim_inputdata_index = random.randint(1, 5)
     BrainSim_inputdata = Sim_Data(BrainSim_inputdata_dir, BrainSim_inputdata_index)
 
@@ -33,13 +27,17 @@ for i in range(500, 505):
     #undeformed_image = test_data.produce_undeformed(0, save_to='/home/mjia/Researches/Volume_Segmentation/TumorMRI/recon_test')
 
     ####################################################################################################################
-    #output_dir = training_data_output_dir + '/' + str(i).zfill(5)
-    #generator = Training_Data_Generator(test_data, subject_mindboggle, BrainSim_inputdata, output_dir,
-    #                                    [BrainSim_inputdata_index, subject_index, BraTS_index])
-    #generator.produce_seed()
-    #generator.run_BrainSim()
-    #continue
-    #generator.interpolate_displacement()
+    output_dir = training_data_output_dir + '/' + str(i).zfill(5)
+    generator = Training_Data_Generator(test_data, subject_mindboggle, BrainSim_inputdata, output_dir,
+                                        source=[BrainSim_inputdata_index, subject_index, BraTS_index])
+    #generator = Training_Data_Generator(None, None, None, output_dir, None)
+    generator.produce_seed()
+    generator.run_BrainSim()
+    import os
+    if not os.path.isfile(output_dir + '/SimTumor_T1.mha'):
+        continue
+    generator.interpolate_displacement()
+    continue
     ####################################################################################################################
     mindboggle_whole_brain = subject_mindboggle.get_iso_surface(4)
     tumer_core, whole_tumer, whole_brain = test_data.get_meshes()

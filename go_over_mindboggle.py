@@ -8,15 +8,9 @@ from mayavi import mlab
 import random
 import numpy as np
 
-BraTS_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/TumorMRI/MICCAI_BraTS2020_TrainingData"
-
-Mindboggle_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/mindboggle"
+from Working_Environment.environment_variables import *
 mb_data = Mindboggle(Mindboggle_dataset_dir)
 subject_list = mb_data.get_subject_list()
-
-BrainSim_inputdata_dir = "/home/mjia/Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData"
-
-training_data_output_dir = '/home/mjia/Researches/Volume_Segmentation/TumorMRI/my_training_data'
 
 '''f = open('command.sh', 'w')
 for i in range(101):
@@ -37,13 +31,15 @@ else:
 mindboggle_whole_brain0 = subject_mindboggle0.get_iso_surface(4)
 mindboggle_whole_brain_v0 = util.affine(affine0, mindboggle_whole_brain0.vertices)
 
-subject_mindboggle1 = Subject(mb_data, subject_list[10])
+BrainSim_inputdata_index = random.randint(1, 5)
+BrainSim_inputdata = Sim_Data(BrainSim_inputdata_dir, BrainSim_inputdata_index)
 if aff:
-    affine1 = subject_mindboggle1.get_affine()
+    affine0 = BrainSim_inputdata.get_affine()
 else:
-    affine1 = np.eye(4)
-mindboggle_whole_brain1 = subject_mindboggle1.get_iso_surface(4)
-mindboggle_whole_brain_v1 = util.affine(affine1, mindboggle_whole_brain1.vertices)
+    affine0 = np.eye(4)
+mesh = BrainSim_inputdata.get_iso_surface(6)
+mindboggle_whole_brain_v1 = util.affine(affine0, mesh.vertices)
+
 
 '''subject_mindboggle2 = Subject(mb_data, subject_list[13])
 if aff:
@@ -61,13 +57,13 @@ else:
 #_, affine0 = subject_0.produce_data(0, ret_affine=True)
 tumer_core, whole_tumer, whole_brain0 = subject_0.get_meshes()
 mindboggle_whole_brain_v2 = util.affine(affine0, whole_brain0.vertices)
-import trimesh
-mindboggle_whole_brain2 = trimesh.Trimesh(mindboggle_whole_brain_v2, whole_brain0.faces)
+#import trimesh
+#mindboggle_whole_brain2 = trimesh.Trimesh(mindboggle_whole_brain_v2, whole_brain0.faces)
 
 mlab.triangular_mesh(mindboggle_whole_brain_v0[:, 0], mindboggle_whole_brain_v0[:, 1], mindboggle_whole_brain_v0[:, 2],
                      mindboggle_whole_brain0.faces, color=(1, 0, 0), opacity=0.2)
 mlab.triangular_mesh(mindboggle_whole_brain_v1[:, 0], mindboggle_whole_brain_v1[:, 1], mindboggle_whole_brain_v1[:, 2],
-                     mindboggle_whole_brain1.faces, color=(0, 1, 0), opacity=0.2)
+                     mesh.faces, color=(0, 1, 0), opacity=0.2)
 mlab.triangular_mesh(mindboggle_whole_brain_v2[:, 0], mindboggle_whole_brain_v2[:, 1], mindboggle_whole_brain_v2[:, 2],
-                     mindboggle_whole_brain2.faces, color=(0, 0, 1), opacity=0.2)
+                     whole_brain0.faces, color=(0, 0, 1), opacity=0.2)
 mlab.show()

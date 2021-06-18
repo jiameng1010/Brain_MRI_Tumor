@@ -50,7 +50,7 @@ and the parameter kappa for the von Mises-Fisher random distribution
 We recommend initial pressure values around 2-5 kPa for stability
 -->
 <deformation-iterations>10</deformation-iterations>
-<deformation-initial-pressure>2.5</deformation-initial-pressure>
+<deformation-initial-pressure>2.0</deformation-initial-pressure>
 <deformation-kappa>80.0</deformation-kappa>
 <deformation-damping>0.95</deformation-damping>
 

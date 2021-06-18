@@ -41,5 +41,5 @@ BrainSim_Affine = np.asarray([[-1.0, 0.0, 0.0, 0.0],
                               [0.0, -1.0, 0.0, 0.0],
                               [0.0, 0.0, 1.0, 0.0],
                               [0.0, 0.0, 0.0, 1.0]])
-BrainSim_shift = np.asarray([-128.0, -128.0, 80.0])
-BrainSim_Affine[:3, 3] = BrainSim_Affine[:3, 3] - BrainSim_shift
+#BrainSim_shift = np.asarray([-128.0, -128.0, 80.0])
+#BrainSim_Affine[:3, 3] = BrainSim_Affine[:3, 3] - BrainSim_shift

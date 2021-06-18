@@ -27,6 +27,31 @@ def affine(affine_m, points):
     point_transformed = affine_m.dot(point_aug.T).T[:, :3]
     return point_transformed
 
+def clap_voxels_out(voxels_in_displacement, index, shape):
+    valid_voxels0 = np.logical_and(voxels_in_displacement[:, 0] > 0, voxels_in_displacement[:, 0] < shape[0])
+    valid_voxels1 = np.logical_and(voxels_in_displacement[:, 1] > 0, voxels_in_displacement[:, 1] < shape[1])
+    valid_voxels2 = np.logical_and(voxels_in_displacement[:, 2] > 0, voxels_in_displacement[:, 2] < shape[2])
+    valid_voxels = 1 * np.logical_and(np.logical_and(valid_voxels2, valid_voxels1), valid_voxels0)
+    voxels_in_displacement = voxels_in_displacement[np.where(valid_voxels == 1)]
+    return voxels_in_displacement, (index[0][np.where(valid_voxels == 1)], index[1][np.where(valid_voxels == 1)], index[2][np.where(valid_voxels == 1)])
+
+def interpolate_without_displacement(org_data, affine_matrix, shape0):
+    from scipy.interpolate import RegularGridInterpolator
+    output_volume = np.zeros(shape=shape0, dtype=np.uint16)
+    index = np.where(output_volume == 0)
+    voxels_interpolate = np.concatenate([np.expand_dims(index[0], axis=1),
+                                         np.expand_dims(index[1], axis=1),
+                                         np.expand_dims(index[2], axis=1)], axis=1)
+    voxels_moved = affine(affine_matrix, voxels_interpolate)
+    shape = org_data.shape
+    x = np.linspace(0, shape[0], shape[0])
+    y = np.linspace(0, shape[1], shape[1])
+    z = np.linspace(0, shape[2], shape[2])
+    fn = RegularGridInterpolator((x, y, z), org_data)
+    voxels_in_displacement, index = clap_voxels_out(voxels_moved, index, shape)
+    values = fn(voxels_in_displacement)
+    output_volume[index] = values
+    return output_volume
 
 def interpolate_with_displacement(org_data, label_manual_aseg, label_manual, displacement_volume, tumor_labels, affine_matrix):
     from scipy.interpolate import RegularGridInterpolator
@@ -39,11 +64,12 @@ def interpolate_with_displacement(org_data, label_manual_aseg, label_manual, dis
     x = np.linspace(0, shape[0], shape[0])
     y = np.linspace(0, shape[1], shape[1])
     z = np.linspace(0, shape[2], shape[2])
-    fn_Sim_label = RegularGridInterpolator((x, y, z), tumor_labels, method='nearest')
+
     fn = RegularGridInterpolator((x, y, z), displacement_volume)
+    voxels_in_displacement, index = clap_voxels_out(voxels_in_displacement, index, shape)
     displacements = fn(voxels_in_displacement)
     voxels_in_displacement_moved = voxels_in_displacement + displacements
-
+    fn_Sim_label = RegularGridInterpolator((x, y, z), tumor_labels, method='nearest')
     voxels_moved = affine(np.linalg.inv(affine_matrix), voxels_in_displacement_moved)
     shape = org_data.shape
     x = np.linspace(0, shape[0], shape[0])
@@ -70,7 +96,13 @@ def interpolate_with_displacement(org_data, label_manual_aseg, label_manual, dis
     value = fn_Sim_label(voxels_in_displacement)
     tumor_voxels = np.where(value == 5)
     a = np.min(out_label_manual_aseg)
-    out_label_manual_aseg[(index[0][tumor_voxels], index[1][tumor_voxels], index[2][tumor_voxels])] = -1
+
+    tumor_mask = np.zeros_like(out_label_manual_aseg)
+    tumor_mask[(index[0][tumor_voxels], index[1][tumor_voxels], index[2][tumor_voxels])] = 1
+    from scipy import ndimage
+    tumor_mask = ndimage.binary_closing(tumor_mask).astype(np.int)
+    tumor_mask = ndimage.binary_closing(tumor_mask).astype(np.int)
+    out_label_manual_aseg[np.where(tumor_mask == 1)] = -1
 
     return out_data, out_label_manual_aseg, out_label_manual
 
