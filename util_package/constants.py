@@ -43,3 +43,8 @@ BrainSim_Affine = np.asarray([[-1.0, 0.0, 0.0, 0.0],
                               [0.0, 0.0, 0.0, 1.0]])
 #BrainSim_shift = np.asarray([-128.0, -128.0, 80.0])
 #BrainSim_Affine[:3, 3] = BrainSim_Affine[:3, 3] - BrainSim_shift
+
+Affine_uniform2mindboggle = np.asarray([[160.0, 0.0, 0.0, 48.0],
+                                        [0.0, 200.0, 0.0, 28.0],
+                                        [0.0, 0.0, 179.0, 1.0],
+                                        [0.0, 0.0, 0.0, 1.0]])
