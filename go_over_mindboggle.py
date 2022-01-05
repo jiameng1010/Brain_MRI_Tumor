@@ -12,7 +12,7 @@ from Working_Environment.environment_variables import *
 mb_data = Mindboggle(Mindboggle_dataset_dir)
 subject_list = mb_data.get_subject_list()
 
-'''f = open('command.sh', 'w')
+f = open('command_mindboggle.sh', 'w')
 for i in range(101):
     subject_mindboggle = Subject(mb_data, subject_list[i])
 
@@ -20,10 +20,10 @@ for i in range(101):
     print(affine)
     f.write(affine)
 
-f.close()'''
+f.close()
 aff = True
 
-subject_mindboggle0 = Subject(mb_data, subject_list[50])
+subject_mindboggle0 = Subject(mb_data, subject_list[52])
 if aff:
     affine0 = subject_mindboggle0.get_affine()
 else:

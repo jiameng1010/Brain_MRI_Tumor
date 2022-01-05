@@ -61,7 +61,7 @@ the time step (values <= 2.0 is recommended),
 and the early time that defines the starting point for edema
   (smaller means edema will form most of the infiltration)
 -->
-<infiltration-iterations>60</infiltration-iterations>
+<infiltration-iterations>20</infiltration-iterations>
 <infiltration-time-step>0.5</infiltration-time-step>
 <infiltration-early-time>2.0</infiltration-early-time>
 
@@ -85,7 +85,7 @@ lambda values between 1-5 generates moderate deformation
 
 
 <!-- Contrast enhancement type, can be: none, ring, or uniform -->
-<contrast-enhancement-type>uniform</contrast-enhancement-type>
+<contrast-enhancement-type>ring</contrast-enhancement-type>
 
 <!-- Image noise and strength of MR bias field -->
 <gad-noise-stddev>8.0</gad-noise-stddev>

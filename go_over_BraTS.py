@@ -7,16 +7,10 @@ from util_package import util, plot, constants
 from mayavi import mlab
 import random
 import numpy as np
+from Working_Environment.environment_variables import *
 
-BraTS_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/TumorMRI/MICCAI_BraTS2020_TrainingData"
-
-Mindboggle_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/mindboggle"
 mb_data = Mindboggle(Mindboggle_dataset_dir)
 subject_list = mb_data.get_subject_list()
-
-BrainSim_inputdata_dir = "/home/mjia/Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData"
-
-training_data_output_dir = '/home/mjia/Researches/Volume_Segmentation/TumorMRI/my_training_data'
 
 '''f = open('command_BraTS.sh', 'w')
 for i in range(369):
@@ -26,7 +20,18 @@ for i in range(369):
     f.write(affine)
 f.close()'''
 
-aff = True
+#f = open('command_BraTS.sh', 'w')
+tumor_size_all = []
+for i in range(369):
+    test_data = BraTS_Data(BraTS_dataset_dir, i+1)
+    tumor_size = test_data.get_tumor_size()
+    print(tumor_size)
+    tumor_size_all.append(tumor_size[0])
+
+import matplotlib.pyplot as plt
+import numpy as np
+plt.hist(np.asarray(tumor_size_all), density=True, bins=30)
+plt.show()
 
 '''subject_0 = BraTS_Data(BraTS_dataset_dir, 5)
 if aff:

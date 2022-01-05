@@ -6,27 +6,31 @@ from Training_Data_Generator.Training_Data_Generator import Training_Data_Genera
 from util_package import util, plot, constants
 from mayavi import mlab
 import random
+from Working_Environment.environment_variables import *
 
-BraTS_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/TumorMRI/MICCAI_BraTS2020_TrainingData"
-
-Mindboggle_dataset_dir = "/home/mjia/Researches/Volume_Segmentation/mindboggle"
 mb_data = Mindboggle(Mindboggle_dataset_dir)
 subject_list = mb_data.get_subject_list()
+f = open('training_data.txt', 'r')
+training_data_index = f.readlines()
+f.close()
 
-BrainSim_inputdata_dir = "/home/mjia/Researches/Volume_Segmentation/NITRC-multi-file-downloads/InputData"
-
-training_data_output_dir = '/home/mjia/Researches/Volume_Segmentation/TumorMRI/my_training_data'
-
-for i in range(36, 41):
+#for i in [335, 339, 343, 347, 351, 355, 359, 363, 367]:
+for i in [331, 333, 335, 337, 339, 341, 343, 345, 347, 349]:
     print(i)
     ###
     #output_dir = '/home/mjia/Researches/Volume_Segmentation/TumorMRI/debug_output_dir'
-    output_dir = training_data_output_dir + '/' + str(i).zfill(5)
-    generator = Training_Data_Generator(None, None, None, output_dir)
+    index = training_data_index[i]
+    output_dir = index[:-1]
+    print(output_dir)
+    generator = Training_Data_Generator(None, None, None, output_dir, None)
+    #generator.interpolate_displacement()
     #generator.produce_seed()
     #generator.run_BrainSim()
     #continue
-    generator.interpolate_displacement()
+    #generator.interpolate_displacement()
+    output_volume = generator.undeform('/media/mjia/Seagate Backup Plus Drive/Researches/Volume_Segmentation/predicted_disp/' + str(i).zfill(5) + '.mha', scale=0.2)
+    #output_volume = generator.undeform(generator.output_dir + '/SimTumor_def_inverse.mha')
+    diff_volume = generator.displacement_residual('/media/mjia/Seagate Backup Plus Drive/Researches/Volume_Segmentation/predicted_disp/' + str(i).zfill(5) + '.mha')
     continue
     ####################################################################################################################
     mindboggle_whole_brain = subject_mindboggle.get_iso_surface(4)

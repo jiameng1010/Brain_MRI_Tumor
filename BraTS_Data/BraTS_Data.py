@@ -68,6 +68,13 @@ class BraTS_Data:
         t1_volume, affine = self.produce_data(0, True)
         return affine
 
+    def get_tumor_size(self):
+        seg_volume = self.produce_data(4)
+        four = len(np.where(seg_volume == 4)[0])
+        two = len(np.where(seg_volume == 2)[0])
+        one = len(np.where(seg_volume == 1)[0])
+        return one+four, four, two
+
     def get_meshes(self):
         t1_volume = self.produce_data(0)
         t1_volume[np.where(t1_volume != 0)] = 1
@@ -119,6 +126,8 @@ class BraTS_Data:
     def get_tetr_mesh(self):
         self.tetr_mesh = Tetr_Mesh(self.meshes[0], self.meshes[1], self.meshes[2])
         return self.tetr_mesh
+    def get_fs_t1file(self):
+        return FREESURFER_SBJ_DIR + 'BraTS_' + str(self.data_id).zfill(3) + '/mri/T1.mgz'
 
     def get_affine(self):
         import os
@@ -134,6 +143,7 @@ class BraTS_Data:
             cmd = ['-subjid', 'BraTS_' + str(self.data_id).zfill(3),
                    '-i', self.data_path + self.list_of_files[0],
                    '-autorecon1', '-gcareg']
+            cmd = ['-s', 'BraTS_' + str(self.data_id).zfill(3), '-canorm -careg -rmneck -skull-lta -calabel']
             command = 'recon-all'
             for i in cmd:
                 command = command+' '+i

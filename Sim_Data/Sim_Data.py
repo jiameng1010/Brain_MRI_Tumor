@@ -32,6 +32,12 @@ class Sim_Data:
         save(volume, self.data_path + '/t1.nii', hdr=image_header)
         return volume
 
+    def get_fs_t1file(self):
+        return FREESURFER_SBJ_DIR + 'TumorSim_' + str(self.data_id) + '/mri/T1.mgz'
+
+    def get_volume_data_file(self, file_index=0):
+        return self.data_path + '/' + file_list[file_index]
+
     def get_iso_surface(self, file_index=0):
         from skimage import measure
         volume, image_header = load(self.data_path + '/' + file_list[file_index])

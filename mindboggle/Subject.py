@@ -21,7 +21,7 @@ file_list = ['labels.DKT31.manual+aseg.MNI152.nii.gz',  # 0
 FREESURFER_SBJ_DIR = '/home/mjia/Researches/Volume_Segmentation/subjects/'
 
 def zero_padding(volume):
-    zeros = np.zeros(shape=(184, 220, 184))
+    zeros = np.zeros(shape=(volume.shape[0]+2 , volume.shape[1]+2, volume.shape[2]+2))
     zeros[1:-1, 1:-1, 1:-1] = volume
     return zeros
 
@@ -31,7 +31,7 @@ class Subject():
         self.id = subject_id
         self.group, self.index = parse_id(self.id)
         self.data_group = parse_group(self.group)
-        volume_file = self.get_volume_data(4)
+        volume_file = self.get_volume_data(5)
         self.affine = volume_file.affine
 
     def get_volume_data(self, file_index):
@@ -53,21 +53,32 @@ class Subject():
 
     def get_affine(self):
         from util_package.util import load_affine_transform
-        supposed_FS_reg_dir = FREESURFER_SBJ_DIR + self.id + '/mri/transforms/'
+        supposed_FS_reg_dir = FREESURFER_SBJ_DIR + self.id+'_org' + '/mri/transforms/'
         supposed_FS_reg_file = supposed_FS_reg_dir + 'talairach.lta'
         if os.path.isfile(supposed_FS_reg_file):
             affine_talairach = load_affine_transform(supposed_FS_reg_file, start_from=9)
-            freesurfer_orig = nib.load(FREESURFER_SBJ_DIR + self.id + '/mri/orig.mgz' )
+            freesurfer_orig = nib.load(FREESURFER_SBJ_DIR + self.id+'_org' + '/mri/orig.mgz' )
             affine_orig = freesurfer_orig.affine
             return affine_talairach.dot(np.linalg.inv(affine_orig)).dot(self.affine)
         else:
-            cmd = ['-subjid', self.id,
-                            '-i', self.get_volume_data_file(4),
+            cmd = ['-subjid', self.id+'_org',
+                            '-i', self.get_volume_data_file(5),
                             '-autorecon1', '-gcareg']
+            #cmd = ['-s', self.id, '-canorm -careg -rmneck -skull-lta -calabel']
             command = 'recon-all'
             for i in cmd:
                 command = command+' '+i
             return command+'\n'
+
+    def get_fs_t1file(self):
+        return FREESURFER_SBJ_DIR + self.id + '/mri/T1.mgz'
+
+    def produce_TumorSim_Redy_Data(self, out_dir):
+        if os.path.isdir(out_dir):
+            subprocess.run(['rm', '-r', out_dir])
+        subprocess.run(['mkdir', out_dir])
+        supposed_registration_dir = os.path.join(os.path.join(self.dataset.data_path_brains), self.data_group + '_registrations')
+
 
 
 
@@ -78,6 +89,9 @@ class Subject():
         supposed_volume_data_dir = os.path.join(supposed_volume_data_dir, self.id)
         if not os.path.isdir(supposed_volume_data_dir):
             print('error')
+        if file_index == -1:
+            file_name = supposed_volume_data_dir + '/' + self.id + '_DKT31_CMA_labels.nii.gz'
+            return file_name
         file_name = file_list[file_index]
         file_name = supposed_volume_data_dir + '/' + file_name
         return file_name
