@@ -29,7 +29,7 @@ class Sim_Data:
     def get_volume_data(self, file_index=0):
         volume, image_header = load(self.data_path + '/' + file_list[file_index])
         from medpy.io import save
-        save(volume, self.data_path + '/t1.nii', hdr=image_header)
+        #save(volume, self.data_path + '/t1.nii', hdr=image_header)
         return volume
 
     def get_fs_t1file(self):

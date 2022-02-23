@@ -42,6 +42,9 @@ class BraTS_Data:
                               '/BraTS20_Training_' + str(data_id).zfill(3) + '_seg.nii.gz']
         _, self.affine = self.produce_data(0, ret_affine=True)
 
+    def get_filename(self, id):
+        return self.data_path + self.list_of_files[id]
+
     def produce_data(self, id, ret_affine=False):
         if isinstance(id, int):
             return vxm.py.utils.load_volfile(self.data_path + self.list_of_files[id], ret_affine=ret_affine)

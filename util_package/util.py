@@ -287,8 +287,9 @@ def size_tetra3_real(v1, v2, v3):
     result = xa*(yb*zc - zb*yc) - ya*(xb*zc - zb*xc) + za*(xb*yc - yb*xc)
     return result
 
-def tetra_interpolation_delaunay(feed_points, v_points, v_value):
-    delaunay_tri = Delaunay(v_points)
+def tetra_interpolation_delaunay(feed_points, v_points, v_value, delaunay_tri=None):
+    if delaunay_tri == None:
+        delaunay_tri = Delaunay(v_points)
     result = np.ones(shape=(feed_points.shape[0], v_value.shape[1]))
     simplex = delaunay_tri.find_simplex(feed_points)
     points_inside_trihull = np.where(simplex != -1)[0]

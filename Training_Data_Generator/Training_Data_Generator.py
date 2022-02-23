@@ -164,23 +164,48 @@ class Training_Data_Generator():
     def displacement_to_svf(self):
         #if self.is_svf_good():
         #    return
-        #displacement_field, _ = load(self.output_dir + '/SimTumor_def.mha')
-        #displacement_field = np.concatenate([np.expand_dims(scipy.ndimage.gaussian_filter(displacement_field[:,:,:,0], sigma=2), axis=-1),
-        #                                     np.expand_dims(scipy.ndimage.gaussian_filter(displacement_field[:,:,:,1], sigma=2), axis=-1),
-        #                                     np.expand_dims(scipy.ndimage.gaussian_filter(displacement_field[:,:,:,2], sigma=2), axis=-1)], axis=-1)
-        #save(displacement_field, self.output_dir + '/SimTumor_def_smooth.mha')
-
+        import scipy
+        displacement_field, _ = load(self.output_dir + '/SimTumor_def.mha')
+        displacement_field = np.concatenate([np.expand_dims(scipy.ndimage.gaussian_filter(displacement_field[:,:,:,0], sigma=3), axis=-1),
+                                            np.expand_dims(scipy.ndimage.gaussian_filter(displacement_field[:,:,:,1], sigma=3), axis=-1),
+                                             np.expand_dims(scipy.ndimage.gaussian_filter(displacement_field[:,:,:,2], sigma=3), axis=-1)], axis=-1)
+        #displacement_field = np.flip(displacement_field, axis=0)
+        #displacement_field = np.flip(displacement_field, axis=1)
+        #displacement_field = np.flip(displacement_field, axis=2)
+        #img = nib.Nifti1Image(displacement_field, np.asarray([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]))
+        #nib.save(img, self.output_dir + '/SimTumor_def_smooth.nii.gz')
+        save(displacement_field, self.output_dir + '/SimTumor_def_smooth.mha')
+        '''subprocess.run([MIRTK_EXECUTABLE,
+                        'convert-dof',
+                        self.output_dir + '/SimTumor_def_smooth.nii.gz',
+                        self.output_dir + '/displacement.nii.gz',
+                        '-input-format', 'disp_voxel',
+                        '-output-format', 'mirtk'])
+                        #'-ss', '-smooth',
+                        #'-steps', '512',])
+                        #'-terms', '8',
+                        #'-iters', '16'])'''
         subprocess.run([MIRTK_EXECUTABLE,
                         'calculate-logarithmic-map',
-                        self.output_dir + '/SimTumor_def.mha',
-                        self.output_dir + '/output_svf.nii.gz',])
-                        #'-ss', '-jac', '-smooth',
-                        #'-steps', '1024',
-                        #'-terms', '4',
-                        #'-iters', '16'])
-        svf, _ = load(self.output_dir + '/output_svf.nii.gz')
-        save(svf, self.output_dir + '/output_svf.mha')
-        self.is_svf_good()
+                        self.output_dir + '/SimTumor_def_smooth.mha',
+                        self.output_dir + '/output_svf.mha',
+                        '-terms', '2',
+                        '-iters', '1',
+                        '-steps', '512',
+                        '-threads', '4',
+                        '-smooth'
+                        ])
+        svf, _ = load(self.output_dir + '/output_svf.mha')
+        #svf = np.concatenate([np.expand_dims(scipy.ndimage.gaussian_filter(svf[:,:,:,0], sigma=10), axis=-1),
+        #                                    np.expand_dims(scipy.ndimage.gaussian_filter(svf[:,:,:,1], sigma=10), axis=-1),
+        #                                     np.expand_dims(scipy.ndimage.gaussian_filter(svf[:,:,:,2], sigma=10), axis=-1)], axis=-1)
+        #save(svf, self.output_dir + '/output_svf.mha')
+        #subprocess.run([MIRTK_EXECUTABLE,
+        #                'calculate-exponential-map',
+        #                self.output_dir + '/output_svf.mha',
+        #                self.output_dir + '/output_disp.mha',
+        #                '-steps', '512'])
+        #self.is_svf_good()
 
     def is_svf_good(self):
         if not os.path.isfile(self.output_dir + '/output_svf.mha'):
@@ -393,7 +418,7 @@ class Training_Data_Generator():
 
         PC_points, PC_face_index = trimesh.sample.sample_surface(tumor_mesh, num_tumor_points)
         PC_surface_normal = tumor_mesh.face_normals[PC_face_index, :]
-        displacement_field, _ = load(self.output_dir + '/SimTumor_def_inverse.mha')
+        displacement_field, _ = load(self.output_dir + '/output_svf.mha')
         shape = displacement_field.shape
         x = np.linspace(0, shape[0]-1, shape[0])
         y = np.linspace(0, shape[1]-1, shape[1])
@@ -440,7 +465,7 @@ class Training_Data_Generator():
         #if os.path.isfile(self.output_dir + '/training_pointclouds_0.3.h5'):
         #    subprocess.run(['rm', self.output_dir + '/training_pointclouds_0.3.h5'])
         import h5py
-        saving_file_name = self.output_dir+'/training_pointclouds_inv_0.3.h5'
+        saving_file_name = self.output_dir+'/training_pointclouds_svf_0.3.h5'
 
         if os.path.isfile(saving_file_name):
             subprocess.run(['rm', saving_file_name])
@@ -555,7 +580,7 @@ class Training_Data_Generator():
         save(sythesised_t1, self.output_dir+'/sythesised_t1.mha')
 
     def sythesis_t1_mindboggle(self):
-        #subprocess.run(['mkdir', self.output_dir + '/tmp'])
+        subprocess.run(['mkdir', self.output_dir + '/tmp'])
 
         Mt1 = nib.load(self.output_dir + '/transformed_t1.nii.gz')
         Mt1_img = Mt1.get_fdata()
@@ -573,7 +598,7 @@ class Training_Data_Generator():
 
         tmp_img = nib.load(self.output_dir + '/transformed_RealTumor.nii.gz')
         nib.save(tmp_img, self.output_dir+'/tmp/transformed_RealTumor.nii.gz')
-        '''subprocess.run([MIRTK_EXECUTABLE, 'register',
+        subprocess.run([MIRTK_EXECUTABLE, 'register',
                         self.output_dir+'/tmp/transformed_t1.nii.gz',
                         self.output_dir+'/tmp/transformed_RealTumor.nii.gz',
                         '-dofout', self.output_dir + '/tmp/deformation_RealTumor2t1',
@@ -583,7 +608,7 @@ class Training_Data_Generator():
                         self.output_dir + '/transformed_RealTumor_label.nii.gz',
                         self.output_dir + '/tmp/registered_transformed_RealTumor_label.nii.gz',
                         '-dofin', self.output_dir + '/tmp/deformation_RealTumor2t1',
-                        '-interp', 'NN'])'''
+                        '-interp', 'NN'])
 
         self.interpolate_displacement(with_skull=True)
         Mt1_file = nib.load(self.output_dir + '/transformed_t1_with_skull.nii.gz')
