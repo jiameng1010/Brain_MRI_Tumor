@@ -49,7 +49,11 @@ class pipeline():
         self.input_shape = None
         self.is_synthesised = is_synthesised
         self.is_svf = is_svf
-        self.disp_scale = disp_scale
+        self.tau = disp_scale
+        if self.is_svf:
+            self.disp_scale = 1.2063787751955717 * disp_scale
+        else:
+            self.disp_scale = 0.6088199579835727 * disp_scale
         self.use_BraTS_label = use_BraTS_label
         if not resume:
             if os.path.isdir(self.output_dir):
@@ -140,7 +144,7 @@ class pipeline():
             command = ['recon-all',
                        '-subjid', self.data_id,
                        '-i', self.t1,
-                       '-autorecon1', '-gcareg']
+                       '-motioncor ', '-nuintensitycor', '-talairach ']
 
         subprocess.run(['rm', 'FreeSurfer_script.sh'])
         with open('FreeSurfer_script.sh', 'w') as f:
@@ -158,10 +162,15 @@ class pipeline():
         seg_volume, _ = load(self.input_dir+'/tumor_segmentation/'+self.data_id+'.nii.gz')
         #tumor_volume[np.where(tumor_volume != 3)] = 0  #
         tumor_volume = np.zeros_like(seg_volume)
-        tumor_volume[np.where(seg_volume > 1)] = 1  # tumor
-
         edma_tumor_volume = np.zeros_like(seg_volume)
-        edma_tumor_volume[np.where(seg_volume >= 1)] = 1  # edma and tumor
+
+        if self.is_synthesised:
+            tumor_volume[np.where(seg_volume > 1)] = 1  # tumor
+            edma_tumor_volume[np.where(seg_volume >= 1)] = 1  # edma and tumor
+        else:
+            tumor_volume[np.where(seg_volume = 1)] = 1  # tumor
+            tumor_volume[np.where(seg_volume = 4)] = 1  # tumor
+            edma_tumor_volume[np.where(seg_volume >= 1)] = 1  # edma and tumor
 
         if not require_mesh:
             return tumor_volume, edma_tumor_volume
@@ -305,10 +314,10 @@ class pipeline():
         return self.output_dir + '/displacement_inv.mha'
 
 
-    def svf_to_displacement(self):
+    def svf_to_displacement(self, direction):
         from util_package.util import interpolate, rotation, load_affine_transform
         svf, _ = load(self.output_dir + '/SVF.mha')
-        svf = -self.disp_scale * svf
+        svf = - direction * self.disp_scale * svf
 
         affine_talairach = load_affine_transform(self.freesurfer_dir + '/mri/transforms/talairach.lta', start_from=9)
         freesurfer_orig = nib.load(self.freesurfer_dir + '/mri/orig.mgz')
@@ -341,6 +350,9 @@ class pipeline():
         if is_inv:
             if os.path.isfile(self.output_dir + '/displacement_inv.mha'):
                 displacement, _ = load(self.output_dir + '/displacement_inv.mha')
+            else:
+                self.invert_disp()
+                displacement, _ = load(self.output_dir + '/displacement_inv.mha')
             return displacement
         else:
             displacement, _ = load(self.output_dir + '/displacement_pred.mha')
@@ -357,6 +369,10 @@ class pipeline():
             return self.disp_scale * displacement
 
     def load_svf_disp(self, is_inv=False):
+        if is_inv:
+            self.svf_to_displacement(-1.0)
+        else:
+            self.svf_to_displacement(1.0)
         from util_package.util import interpolate, rotation, load_affine_transform
         import nibabel as nib
         displacement, _ = load(self.output_dir + '/displacement.mha')
@@ -651,7 +667,7 @@ class pipeline():
 
     def makeDeformedAtlasPoints_freeform(self, point_position, use_GT_disp=False):
         tumor_volume, edma_tumor_volume = self.load_tumor_seg()
-        tumor_p = 0.5*tumor_volume + 0.5*edma_tumor_volume
+        tumor_p = 0.4*tumor_volume + 0.5*edma_tumor_volume
         import scipy
         tumor_p = scipy.ndimage.gaussian_filter(tumor_p, sigma=2)
 
@@ -659,10 +675,15 @@ class pipeline():
             displacement, _ = load(self.input_dir + '/SimTumor_def_inverse.mha')
             displacement = self.disp_scale * displacement
             displacement_inv, _ = load(self.input_dir + '/SimTumor_def.mha')
-            displacement_inv = self.disp_scale * displacement_inv
+            #displacement_inv = self.disp_scale * displacement_inv
         else:
-            displacement = self.load_pred_disp()
-            displacement_inv = self.load_pred_disp(is_inv=True)
+            if self.is_synthesised:
+                displacement = self.load_pred_disp()
+                displacement_inv = self.load_pred_disp(is_inv=True)
+            else:
+                displacement = self.load_svf_disp()
+                displacement_inv = self.load_svf_disp(is_inv=True)
+
         from util_package.util import load_affine_transform_true, affine, clap_voxels_out, rotation
         from scipy.interpolate import RegularGridInterpolator
         affine1 = nib.load(self.t1).affine
@@ -707,7 +728,7 @@ class pipeline():
         transformed_vertices, index = clap_voxels_out2(transformed_vertices, np.arange(tumor_prior.shape[0]), shape_tumor)
         tumor_prior[index] = fn_tumor_p(transformed_vertices)
 
-        return point_position + disp, tumor_prior/np.max(tumor_prior)
+        return point_position + disp, tumor_prior
 
     def makeTumorAtlas(self, atlasDirOrig, atlasDirNew, skull=True):
         from os.path import join
@@ -724,31 +745,31 @@ class pipeline():
             newAlphas = np.zeros((mesh.alphas.shape[0], mesh.alphas.shape[1] + 1))
             newAlphas[:, :-1] = mesh.alphas.copy()
 
-            if skull:
-                tumorPossible = mesh.alphas[:, :3].sum(axis=-1) < 0.5
-            else:
-                tumorPossible = mesh.alphas[:, 0] < 0.5  # can only have tumor inside the brain
-
             position, tumorPrior = self.makeDeformedAtlasPoints_freeform(meshcoll.reference_position)
             newAlphas[:, -1] = tumorPrior
             newAlphas[:, :-1] *= np.expand_dims(1 - tumorPrior, axis=-1)
             sumAlphas = newAlphas[:, :].sum(axis=1)
             newAlphas[:, :] /= (sumAlphas[:, np.newaxis])
 
-            from util_package.util import tetra_interpolation_delaunay
-            newnewAlphas, _ = tetra_interpolation_delaunay(meshcoll.reference_position, position, newAlphas)
-            sumAlphas = newnewAlphas[:, :].sum(axis=1)
-            newnewAlphas[:, :] /= (sumAlphas[:, np.newaxis])
+            #method1
+            #from util_package.util import tetra_interpolation_delaunay
+            #newnewAlphas, _ = tetra_interpolation_delaunay(meshcoll.reference_position, position, newAlphas)
+            #sumAlphas = newnewAlphas[:, :].sum(axis=1)
+            #newnewAlphas[:, :] /= (sumAlphas[:, np.newaxis])
+            #mesh.alphas = newnewAlphas
+            #meshcoll.reference_mesh.alphas = mesh.alphas
 
-            mesh.alphas = newnewAlphas
+            #method2
+            mesh.alphas = newAlphas
             meshcoll.reference_mesh.alphas = mesh.alphas
-            #meshcoll.reference_mesh.points = requireNumpyArray(position)
-            #meshcoll.reference_position = requireNumpyArray(position)
+            meshcoll.reference_mesh.points = requireNumpyArray(position)
+            meshcoll.reference_position = requireNumpyArray(position)
+
             meshcoll.write(meshFileOut.replace(".gz", ""))
 
         sharedParamFile = join(atlasDirOrig, "sharedGMMParameters.txt")
         sharedParamLines = open(sharedParamFile).readlines()
-        sharedParamLines.append("Tumor 1 Tumor\n")
+        sharedParamLines.append("Tumor 2 Tumor\n")
         with open(join(atlasDirNew, "sharedGMMParameters.txt"), "w") as f:
             for line in sharedParamLines:
                 f.write(line)
@@ -768,22 +789,22 @@ class pipeline():
         if os.path.isdir(output_folder):
             subprocess.run(['rm', '-r', output_folder])
         subprocess.run(['mkdir', output_folder])
-        subprocess.run(['cp', '-r', SAMSEG_ATLAS_DIR1, output_folder])
-        subprocess.run(['mv', output_folder + '/20Subjects_smoothing2_down2_smoothingForAffine2', output_folder + '/atlas'])
+        #subprocess.run(['cp', '-r', SAMSEG_ATLAS_DIR1, output_folder])
+        #subprocess.run(['mv', output_folder + '/20Subjects_smoothing2_down2_smoothingForAffine2', output_folder + '/atlas'])
 
-        if use_GT_disp:
+        '''if use_GT_disp:
             displacement, _ = load(self.input_dir + '/SimTumor_def_inverse.mha')
             displacement = self.disp_scale * displacement
             displacement_inv, _ = load(self.input_dir + '/SimTumor_def.mha')
             displacement_inv = self.disp_scale * displacement_inv
         else:
             displacement = self.load_svf_disp()
-            displacement_inv = self.load_pred_disp(is_inv=True)
+            displacement_inv = self.load_pred_disp(is_inv=True)'''
         from util_package.util import load_affine_transform_true, affine, clap_voxels_out, rotation
         from scipy.interpolate import RegularGridInterpolator
         affine1 = nib.load(self.t1).affine
         affine2 = load_affine_transform_true(self.input_dir + '/samseg1/template.lta', 9)
-        affine3 = nib.load(output_folder + '/atlas/template.nii').affine
+        affine3 = nib.load(SAMSEG_ATLAS_NOSKULL_DIR + '/template.nii').affine
         affine_v2v = np.linalg.inv(affine1).dot(affine2.dot(affine3))
         if use_GT_disp:
             from Training_Data_Generator.Training_Data_Generator import Training_Data_Generator
@@ -796,7 +817,10 @@ class pipeline():
 
         #SamsegTumor.makeTumorAtlas(output_folder + '/atlas',
         #                       output_folder + '/atlas_tumor')
-        self.makeTumorAtlas(output_folder + '/atlas', output_folder + '/atlas_tumor')
+        if self.is_synthesised:
+            self.makeTumorAtlas(SAMSEG_ATLAS_DIR1, output_folder + '/atlas_tumor')
+        else:
+            self.makeTumorAtlas(SAMSEG_ATLAS_NOSKULL_DIR, output_folder + '/atlas_tumor')
 
         #debug
         probabilisticAtlas = ProbabilisticAtlas()
@@ -810,10 +834,10 @@ class pipeline():
                                      savePath=output_folder,
                                      modeNames=['t1'],
                                      useMeanConstr=False, useShapeModel=False, useMRF=False,
-                                     saveModelProbabilities=True,
-                                     savePosteriors=True,
-                                     saveWarp=True,
-                                     saveHistory=True)
+                                     savePosteriors=False)
+                                     #saveModelProbabilities=True,
+                                     #saveWarp=True,
+                                     #saveHistory=True)
         '''ss= Samseg(imageFileNames=[input_file],
                                      atlasDir=output_folder + '/atlas_tumor',
                                      savePath=output_folder,
@@ -849,6 +873,10 @@ class pipeline():
 
         #self.tumor_segmentation()
         #self.produce_point_cloud()
+        #self.pred_svf()
+        #self.svf_to_displacement()
+        #self.pred_disp()
+        #return
         '''if self.is_svf == True:
             self.pred_svf()
             self.svf_to_displacement()
@@ -859,6 +887,7 @@ class pipeline():
         #self.apply_displacement()
 
         #self.segmentation_samseg(self.t1, self.input_dir + '/samseg1')
+        #return
         #self.project_samseg(src=self.input_dir + '/samseg1/seg.mgz', dist=self.output_dir + '/samseg1.nii.gz',
         #                    direct_copy=True)
         #self.segmentation_samseg(self.output_dir+'/wapped_t1.nii.gz', self.input_dir + '/samseg2')
@@ -866,9 +895,24 @@ class pipeline():
         #self.samseg_def(self.t1, self.input_dir + '/samseg4')
         #self.project_samseg(src=self.input_dir + '/samseg4/seg.mgz', dist=self.output_dir + '/samseg4_tumor.nii.gz',
         #                    direct_copy=True)
-        self.svf_to_displacement()
-        self.samseg_tumor_def(self.t1, self.input_dir + '/samseg4', use_GT_disp=False, use_deformed_atlas=True)
-        self.project_samseg(src=self.input_dir + '/samseg4/seg.mgz', dist=self.output_dir + '/samseg4_tumor_DISP' + str(self.disp_scale)[:4] + '.nii.gz',
+        #self.svf_to_displacement()
+        samseg_dir = self.input_dir + '/samseg1'
+        if self.is_svf:
+            tag = 'SVF'
+        else:
+            tag = 'DISP'
+
+        self.samseg_tumor_def(self.t1, samseg_dir, use_GT_disp=False, use_deformed_atlas=True)
+        self.project_samseg(src=samseg_dir + '/seg.mgz', dist=self.output_dir + '/samseg_tumor_' + tag + str(self.tau)[:4] + '.nii.gz',
+                            direct_copy=True)
+
+        seg1 = nib.load(samseg_dir + '/seg.mgz')
+        tumor_seg = nib.load(samseg_dir + '/posteriors/Tumor.mgz').get_fdata()
+        output_image = seg1.get_fdata()
+        output_image[np.where(tumor_seg==1)] = 99
+        unwapped_seg = nib.Nifti1Image(output_image, self.get_input_affine())
+        nib.save(unwapped_seg, samseg_dir + '/seg_with_tumor.mgz')
+        self.project_samseg(src=samseg_dir + '/seg_with_tumor.mgz', dist=self.output_dir + '/samseg_TUMOR_' + tag + str(self.tau)[:4] + '.nii.gz',
                             direct_copy=True)
 
 
@@ -935,6 +979,43 @@ class pipeline():
         pred2[np.where(pred2 == 99)] = 0.0
         plot = Plot_result(mri, mri_warp, pred1, pred2, gt, affine)
         plot.produce_img(output_file, metric1, metric2, metric1_nocortex, metric2_nocortex)
+        return 0
+
+    def plot_brats_result(self, pred_file1, pred_file2, pred_file3, output_file, save_volume=True, overlay=True):
+        from .plot_result import Plot_result
+        mri = nib.load(self.input_dir + '/image_0001.nii.gz').get_fdata()
+        mri_warp = nib.load(self.input_dir + '/image_0001.nii.gz').get_fdata()
+        pred1 = nib.load(self.output_dir + '/' + pred_file1).get_fdata()
+        pred2 = nib.load(self.output_dir + '/' + pred_file2).get_fdata()
+        pred3 = nib.load(self.output_dir + '/' + pred_file3).get_fdata()
+        pred1[np.where(pred1 == 41)] = 0.0
+        pred1[np.where(pred1 == 2)] = 0.0
+        #pred1[np.where(pred1 ==99)] = 0.0
+        pred2[np.where(pred2 == 41)] = 0.0
+        pred2[np.where(pred2 == 2)] = 0.0
+        #pred2[np.where(pred2 == 99)] = 0.0
+        pred3[np.where(pred3 == 41)] = 0.0
+        pred3[np.where(pred3 == 2)] = 0.0
+
+        gt = nib.load(self.input_dir + '/tumor_segmentation/image.nii.gz').get_fdata()
+        if overlay:
+            pred1[np.where(gt == 1)] = 101
+            pred1[np.where(gt == 4)] = 100
+            #pred1[np.where(gt == 2)] = 99
+            pred2[np.where(gt == 1)] = 101
+            pred2[np.where(gt == 4)] = 100
+            #pred2[np.where(gt == 2)] = 99
+            pred3[np.where(gt == 1)] = 101
+            pred3[np.where(gt == 4)] = 100
+            #pred3[np.where(gt == 2)] = 99
+        affine = nib.load(self.input_dir + '/tumor_segmentation/image.nii.gz').affine
+        plot = Plot_result(mri, mri_warp, pred1, pred2, pred3, gt, affine, False)
+        plot.produce_img_brats(output_file)
+
+        if save_volume == True:
+            nib.save(nib.Nifti1Image(pred1, nib.load(self.output_dir + '/' + pred_file1).affine), output_file.replace('png', '1.mgz'))
+            nib.save(nib.Nifti1Image(pred2, nib.load(self.output_dir + '/' + pred_file1).affine),
+                     output_file.replace('png', '2.mgz'))
         return 0
 
 if __name__ == "__main__":
