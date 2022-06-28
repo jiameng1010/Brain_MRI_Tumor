@@ -348,11 +348,8 @@ class pipeline():
         from util_package.util import interpolate, rotation, load_affine_transform
         import nibabel as nib
         if is_inv:
-            if os.path.isfile(self.output_dir + '/displacement_inv.mha'):
-                displacement, _ = load(self.output_dir + '/displacement_inv.mha')
-            else:
-                self.invert_disp()
-                displacement, _ = load(self.output_dir + '/displacement_inv.mha')
+            self.invert_disp()
+            displacement, _ = load(self.output_dir + '/displacement_inv.mha')
             return displacement
         else:
             displacement, _ = load(self.output_dir + '/displacement_pred.mha')
@@ -665,7 +662,7 @@ class pipeline():
         ss.segment()
         pass
 
-    def makeDeformedAtlasPoints_freeform(self, point_position, use_GT_disp=False):
+    def makeDeformedAtlasPoints_freeform(self, point_position, use_GT_disp=False, is_forward=True):
         tumor_volume, edma_tumor_volume = self.load_tumor_seg()
         tumor_p = 0.4*tumor_volume + 0.5*edma_tumor_volume
         import scipy
@@ -677,12 +674,16 @@ class pipeline():
             displacement_inv, _ = load(self.input_dir + '/SimTumor_def.mha')
             #displacement_inv = self.disp_scale * displacement_inv
         else:
-            if self.is_synthesised:
-                displacement = self.load_pred_disp()
-                displacement_inv = self.load_pred_disp(is_inv=True)
+            if self.is_svf:
+                if is_forward:
+                    displacement = self.load_pred_disp()
+                else:
+                    displacement = self.load_pred_disp(is_inv=True)
             else:
-                displacement = self.load_svf_disp()
-                displacement_inv = self.load_svf_disp(is_inv=True)
+                if is_forward:
+                    displacement = self.load_svf_disp()
+                else:
+                    displacement = self.load_svf_disp(is_inv=True)
 
         from util_package.util import load_affine_transform_true, affine, clap_voxels_out, rotation
         from scipy.interpolate import RegularGridInterpolator
@@ -724,7 +725,10 @@ class pipeline():
             affine5 = generator.Mindboggle_data.get_affine()
             affine_v2vd = np.linalg.inv(affine4).dot(affine5).dot(affine_v2v)
         tumor_prior = np.zeros(shape=point_position.shape[0])
-        transformed_vertices = affine(affine_v2vd, point_position + disp)
+        if is_forward:
+            transformed_vertices = affine(affine_v2vd, point_position + disp)
+        else:
+            transformed_vertices = affine(affine_v2vd, point_position)
         transformed_vertices, index = clap_voxels_out2(transformed_vertices, np.arange(tumor_prior.shape[0]), shape_tumor)
         tumor_prior[index] = fn_tumor_p(transformed_vertices)
 
@@ -745,31 +749,34 @@ class pipeline():
             newAlphas = np.zeros((mesh.alphas.shape[0], mesh.alphas.shape[1] + 1))
             newAlphas[:, :-1] = mesh.alphas.copy()
 
-            position, tumorPrior = self.makeDeformedAtlasPoints_freeform(meshcoll.reference_position)
+            #method1
+            position, tumorPrior = self.makeDeformedAtlasPoints_freeform(meshcoll.reference_position, is_forward=False)
+            from util_package.util import tetra_interpolation_delaunay
+            intAlphas, _ = tetra_interpolation_delaunay(position, meshcoll.reference_position, mesh.alphas)
+            newAlphas[:, :-1] = intAlphas
             newAlphas[:, -1] = tumorPrior
             newAlphas[:, :-1] *= np.expand_dims(1 - tumorPrior, axis=-1)
             sumAlphas = newAlphas[:, :].sum(axis=1)
             newAlphas[:, :] /= (sumAlphas[:, np.newaxis])
-
-            #method1
-            #from util_package.util import tetra_interpolation_delaunay
-            #newnewAlphas, _ = tetra_interpolation_delaunay(meshcoll.reference_position, position, newAlphas)
-            #sumAlphas = newnewAlphas[:, :].sum(axis=1)
-            #newnewAlphas[:, :] /= (sumAlphas[:, np.newaxis])
-            #mesh.alphas = newnewAlphas
-            #meshcoll.reference_mesh.alphas = mesh.alphas
+            mesh.alphas = newAlphas
+            meshcoll.reference_mesh.alphas = mesh.alphas
 
             #method2
+            '''position, tumorPrior = self.makeDeformedAtlasPoints_freeform(meshcoll.reference_position, is_forward=True)
+            newAlphas[:, -1] = tumorPrior
+            newAlphas[:, :-1] *= np.expand_dims(1 - tumorPrior, axis=-1)
+            sumAlphas = newAlphas[:, :].sum(axis=1)
+            newAlphas[:, :] /= (sumAlphas[:, np.newaxis])
             mesh.alphas = newAlphas
             meshcoll.reference_mesh.alphas = mesh.alphas
             meshcoll.reference_mesh.points = requireNumpyArray(position)
-            meshcoll.reference_position = requireNumpyArray(position)
+            meshcoll.reference_position = requireNumpyArray(position)'''
 
             meshcoll.write(meshFileOut.replace(".gz", ""))
 
         sharedParamFile = join(atlasDirOrig, "sharedGMMParameters.txt")
         sharedParamLines = open(sharedParamFile).readlines()
-        sharedParamLines.append("Tumor 2 Tumor\n")
+        sharedParamLines.append("Tumor 1 Tumor\n")
         with open(join(atlasDirNew, "sharedGMMParameters.txt"), "w") as f:
             for line in sharedParamLines:
                 f.write(line)

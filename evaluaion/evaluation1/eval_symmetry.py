@@ -3,8 +3,10 @@ import nibabel as nib
 import numpy as np
 import copy
 
-labels_left = [2, 3, 4, 5, 7, 8, 10, 11, 12, 13, 17, 18, 26, 28, 30, 31]
-labels_right = [41, 42, 43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63]
+#labels_left = [2, 3, 4, 5, 7, 8, 10, 11, 12, 13, 17, 18, 26, 28, 30, 31]
+#labels_right = [41, 42, 43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63]
+labels_left = [4, 5, 7, 8, 10, 11, 12, 13, 17, 18, 26, 28, 30, 31]
+labels_right = [43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63]
 LABELS = labels_left + labels_right
 
 def calculate_Dice(vol1, vol2):
@@ -37,7 +39,7 @@ def calculate_Dice_one(label, vol1, vol2):
 
 def swap_left_right(vol):
     vol_tmp = np.zeros_like(vol)
-    for i in range(16):
+    for i in range(len(labels_left)):
         vol_tmp[np.where(vol == labels_right[i])] = labels_left[i]
         vol_tmp[np.where(vol == labels_left[i])] = labels_right[i]
     return vol_tmp

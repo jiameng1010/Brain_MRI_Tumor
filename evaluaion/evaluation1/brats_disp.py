@@ -49,7 +49,11 @@ class pipeline():
         self.input_shape = None
         self.is_synthesised = is_synthesised
         self.is_svf = is_svf
-        self.disp_scale = disp_scale
+        self.tau = disp_scale
+        if self.is_svf:
+            self.disp_scale = 1.2063787751955717 * disp_scale
+        else:
+            self.disp_scale = 0.6088199579835727 * disp_scale
         self.use_BraTS_label = use_BraTS_label
         if brats_sub_dir!=None:
             self.brats_sub_dir = brats_sub_dir
@@ -166,10 +170,15 @@ class pipeline():
         seg_volume, _ = load(self.input_dir+'/tumor_segmentation/'+self.data_id+'.nii.gz')
         #tumor_volume[np.where(tumor_volume != 3)] = 0  #
         tumor_volume = np.zeros_like(seg_volume)
-        tumor_volume[np.where(seg_volume > 1)] = 1  # tumor
-
         edma_tumor_volume = np.zeros_like(seg_volume)
-        edma_tumor_volume[np.where(seg_volume >= 1)] = 1  # edma and tumor
+
+        if self.is_synthesised:
+            tumor_volume[np.where(seg_volume > 1)] = 1  # tumor
+            edma_tumor_volume[np.where(seg_volume >= 1)] = 1  # edma and tumor
+        else:
+            tumor_volume[np.where(seg_volume == 1)] = 1  # tumor
+            tumor_volume[np.where(seg_volume == 4)] = 1  # tumor
+            edma_tumor_volume[np.where(seg_volume >= 1)] = 1  # edma and tumor
 
         if not require_mesh:
             return tumor_volume, edma_tumor_volume
@@ -873,14 +882,14 @@ class pipeline():
         #self.project_samseg(src=self.input_dir + '/samseg4/seg.mgz', dist=self.output_dir + '/samseg4_tumor.nii.gz',
         #                    direct_copy=True)
         #self.svf_to_displacement()
-        samseg_dir = self.input_dir + '/samseg5'
+        samseg_dir = self.input_dir + '/samseg6'
         if self.is_svf:
             tag = 'SVF'
         else:
             tag = 'DISP'
 
         self.samseg_tumor_def(self.t1, samseg_dir, use_GT_disp=False, use_deformed_atlas=True)
-        self.project_samseg(src=samseg_dir + '/seg.mgz', dist=self.output_dir + '/samseg_tumor_' + tag + str(self.disp_scale)[:4] + '.nii.gz',
+        self.project_samseg(src=samseg_dir + '/seg.mgz', dist=self.output_dir + '/samseg_tumor_' + tag + str(self.tau)[:4] + '.nii.gz',
                             direct_copy=True)
 
         seg1 = nib.load(samseg_dir + '/seg.mgz')
@@ -889,7 +898,7 @@ class pipeline():
         output_image[np.where(tumor_seg==1)] = 99
         unwapped_seg = nib.Nifti1Image(output_image, self.get_input_affine())
         nib.save(unwapped_seg, samseg_dir + '/seg_with_tumor.mgz')
-        self.project_samseg(src=samseg_dir + '/seg_with_tumor.mgz', dist=self.output_dir + '/samseg_TUMOR_' + tag + str(self.disp_scale)[:4] + '.nii.gz',
+        self.project_samseg(src=samseg_dir + '/seg_with_tumor.mgz', dist=self.output_dir + '/samseg_TUMOR_' + tag + str(self.tau)[:4] + '.nii.gz',
                             direct_copy=True)
 
 
@@ -986,7 +995,7 @@ if __name__ == "__main__":
             n+=1
             pp = pipeline(test_data.data_path + '/pipeline_folder', test_data.data_path + '/pipeline_folder/output',
                           config.num_points,
-                          is_synthesised=False, resume=True, disp_scale=0.7,
+                          is_synthesised=False, resume=True, disp_scale=1.2,
                           is_svf=False, brats_sub_dir=FREESURFER_SBJ_DIR+'BraTS_'+str(i+1).zfill(3),
                           use_BraTS_label=True)
             pp.run_samseg()

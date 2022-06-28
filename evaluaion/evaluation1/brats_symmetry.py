@@ -8,10 +8,10 @@ import numpy as np
 from eval_symmetry import Eval_symmetry
 import os
 if __name__ == "__main__":
-    outputdir = 'DISP'
+    outputdir = 'subSVF_seg7'
 
     for ii in range(10):
-        dis_scale = 0.1 * ii * 0.6088199579835727#1.2063787751955717
+        dis_scale = 0.1 * ii# * 0.6088199579835727#1.2063787751955717
         subprocess.run(['mkdir', outputdir+'/'+str(ii)])
         n = 0
         sum1 = 0
@@ -31,7 +31,7 @@ if __name__ == "__main__":
                 pp = pipeline(test_data.data_path + '/pipeline_folder', test_data.data_path + '/pipeline_folder/output',
                               1500,
                               is_synthesised=False, resume=True, disp_scale=dis_scale,
-                              is_svf=False, use_BraTS_label=True)
+                              is_svf=True, use_BraTS_label=True)
                 from util_package.util import interpolate
                 '''seg1 = nib.load(test_data.data_path + '/SamsegTumor_noskull_output/seg.mgz')
                 tumor_seg = nib.load(test_data.data_path + '/SamsegTumor_noskull_output/posteriors/Tumor.mgz').get_fdata()
@@ -40,12 +40,12 @@ if __name__ == "__main__":
                 unwapped_seg = nib.Nifti1Image(output_image, pp.get_input_affine())
                 nib.save(unwapped_seg, test_data.data_path + '/SamsegTumor_noskull_output/seg_with_tumor.mgz')'''
 
-                displacement = pp.project_samseg(test_data.data_path + '/SamsegTumor_noskull_output/seg.mgz',
-                                                 test_data.data_path + '/SamsegTumor_noskull_output/seg_warp.mgz',
+                displacement = pp.project_samseg(test_data.data_path + '/pipeline_folder/samseg7/seg.mgz',
+                                                 test_data.data_path + '/pipeline_folder/samseg7/seg_warp.mgz',
                                                  is_inv=False, is_DISP=True)
 
-                seg1 = nib.load(test_data.data_path + '/SamsegTumor_noskull_output/seg.mgz')
-                seg2 = nib.load(test_data.data_path + '/SamsegTumor_noskull_output/seg_warp.mgz')
+                seg1 = nib.load(test_data.data_path + '/pipeline_folder/samseg7/seg.mgz')
+                seg2 = nib.load(test_data.data_path + '/pipeline_folder/samseg7/seg_warp.mgz')
                 eval1 = Eval_symmetry(seg1)
                 eval2 = Eval_symmetry(seg2)
                 print(eval1.get_mean_dice())

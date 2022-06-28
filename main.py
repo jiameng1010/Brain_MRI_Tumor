@@ -13,7 +13,7 @@ mb_data = Mindboggle(Mindboggle_dataset_dir)
 subject_list = mb_data.get_subject_list()
 
 #for i in range(0, 100):
-training_data_output_dir = '/media/mjia/Seagate Backup Plus Drive/Researches/Volume_Segmentation/my_training_data_seed_size'
+training_data_output_dir = '/home/mjia/Researches/Volume_Segmentation/TumorMRI/my_training_data_server'
 #training_data_output_dir = '/home/mjia/Researches/Volume_Segmentation/TumorMRI/training_data'
 view_files_dir = '/home/mjia/Researches/Volume_Segmentation/TumorMRI/training_data/files_viewing'
 eval_dir = '/home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7'
@@ -73,7 +73,7 @@ for i in range(80):
     tumor_mesh, brain_mesh = generator.get_meshes()
     generator.interpolate_displacement()
     generator.sythesis_t1_mindboggle()
-    generator.make_eval_ready(eval_dir + '/' + output_dir.split('/')[-1])
+    #generator.make_eval_ready(eval_dir + '/' + output_dir.split('/')[-1])
     #generator.product_brain_mask()
     continue
     if not os.path.isfile(output_dir + '/SimTumor_T1.mha'):

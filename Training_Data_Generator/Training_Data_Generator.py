@@ -593,17 +593,23 @@ class Training_Data_Generator():
         Bt1_label = nib.load(self.output_dir + '/transformed_RealTumor_label.nii.gz').get_fdata()
         Bt1_label[np.where(Bt1_label==3)] = 1
         Bt1_label[np.where(Bt1_label==4)] = 1
-        Bt1_img[np.where(Bt1_label==1)] = 1024
+        Bt1_img[np.where(Bt1_label==1)] = 512
         nib.save(nib.Nifti1Image(Bt1_img, Bt1.affine), self.output_dir+'/tmp/transformed_RealTumor.nii.gz')
 
-        tmp_img = nib.load(self.output_dir + '/transformed_RealTumor.nii.gz')
-        nib.save(tmp_img, self.output_dir+'/tmp/transformed_RealTumor.nii.gz')
         subprocess.run([MIRTK_EXECUTABLE, 'register',
                         self.output_dir+'/tmp/transformed_t1.nii.gz',
                         self.output_dir+'/tmp/transformed_RealTumor.nii.gz',
                         '-dofout', self.output_dir + '/tmp/deformation_RealTumor2t1',
                         '-output', self.output_dir + '/tmp/registered_transformed_RealTumor.nii.gz',
-                        '-be', '0.001', '-tp', '0.0001'])
+                        '-be', '0.0001', '-tp', '0.00001'])
+        tmp_img = nib.load(self.output_dir + '/transformed_RealTumor.nii.gz')
+        nib.save(tmp_img, self.output_dir+'/tmp/transformed_RealTumor.nii.gz')
+        subprocess.run([MIRTK_EXECUTABLE, 'transform-image',
+                        self.output_dir + '/transformed_RealTumor.nii.gz',
+                        self.output_dir + '/tmp/registered_transformed_RealTumor.nii.gz',
+                        '-dofin', self.output_dir + '/tmp/deformation_RealTumor2t1',
+                        '-interp', 'Linear'])
+
         subprocess.run([MIRTK_EXECUTABLE, 'transform-image',
                         self.output_dir + '/transformed_RealTumor_label.nii.gz',
                         self.output_dir + '/tmp/registered_transformed_RealTumor_label.nii.gz',
