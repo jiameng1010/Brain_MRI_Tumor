@@ -30,6 +30,9 @@ https://www.nitrc.org/projects/tumorsim/
 We relay on this software to generate training data.
 Edit ```TumorSim_executable``` in Working_Environment/environment_variables.py to point to the binary executable of TumorSim.
 
+**5 - SamsegTumor**
+The original SamsegTumor.py in freesurfer/python/packages/freesurfer/samseg should be replaced by our modified version at Modified_SamsegTumor/SamsegTumor.py.
+
 ## Datasets
 **1 - BraST**
 BraST 2020 dataset could be download from:

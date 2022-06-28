@@ -1,0 +1,22 @@
+#!/bin/bash
+conda activate 3_6_volume_segmentation_1_14_gpus
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00000/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00001/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00002/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00003/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00004/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00005/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00006/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00007/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00008/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00009/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00010/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00011/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00012/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00013/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00014/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00015/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00016/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00017/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00018/ --output_folder output --is_synthesised True --disp_scale 0.82
+python pipeline.py --input_folder /home/mjia/Researches/Volume_Segmentation/TumorMRI/TumorMRI_code/pipeline/test_data/synthesised7/00019/ --output_folder output --is_synthesised True --disp_scale 0.82
