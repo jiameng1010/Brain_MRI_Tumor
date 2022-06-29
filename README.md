@@ -33,6 +33,9 @@ Edit ```TumorSim_executable``` in Working_Environment/environment_variables.py t
 **5 - SamsegTumor**
 The original SamsegTumor.py in freesurfer/python/packages/freesurfer/samseg should be replaced by our modified version at Modified_SamsegTumor/SamsegTumor.py.
 
+**6 - PCNN displacement network**
+The code for training the PCNN displacement network is in another repo: https://github.com/jiameng1010/pcnn_brain_tumor.
+
 ## Datasets
 **1 - BraST**
 BraST 2020 dataset could be download from:
