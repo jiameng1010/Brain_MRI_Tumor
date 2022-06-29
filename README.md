@@ -37,8 +37,8 @@ The original SamsegTumor.py in freesurfer/python/packages/freesurfer/samseg shou
 The code for training the PCNN displacement network is in another repo: https://github.com/jiameng1010/pcnn_brain_tumor.
 
 ## Datasets
-**1 - BraST**
-BraST 2020 dataset could be download from:
+**1 - BraTS**
+BraTS 2020 dataset could be download from:
 https://www.med.upenn.edu/cbica/brats2020/data.html
 Once extracted, edit ```BraTS_dataset_dir``` in Working_Environment/environment_variables.py to point to where BraST is stored.
 
